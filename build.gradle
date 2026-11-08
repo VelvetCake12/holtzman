@@ -28,9 +28,12 @@ dependencies {
 
 def genRes = layout.buildDirectory.dir('genres')
 tasks.register('unpackRes', Copy) {
-    from zipTree('mod/resources.zip')
+    from zipTree('resources.zip')
     into genRes
 }
-sourceSets.main.java.srcDirs = ['mod/java']
+sourceSets.main.java {
+    srcDirs = ['.']
+    include '*.java'
+}
 sourceSets.main.resources.srcDirs = [genRes]
 tasks.named('processResources') { dependsOn 'unpackRes' }
