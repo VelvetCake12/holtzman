@@ -38,6 +38,7 @@ import java.util.function.Supplier;
 @Mod(CreateHeat.MODID)
 public class CreateHeat {
     public static final String MODID = "createheat";
+    public static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
 
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
