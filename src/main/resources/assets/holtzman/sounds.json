@@ -1,0 +1,37 @@
+{
+ "shield_hit": {
+  "sounds": [
+   {
+    "name": "holtzman:shield_hit"
+   }
+  ]
+ },
+ "shield_pierce": {
+  "sounds": [
+   {
+    "name": "holtzman:shield_pierce"
+   }
+  ]
+ },
+ "shield_on": {
+  "sounds": [
+   {
+    "name": "holtzman:shield_on"
+   }
+  ]
+ },
+ "shield_off": {
+  "sounds": [
+   {
+    "name": "holtzman:shield_off"
+   }
+  ]
+ },
+ "shield_hum": {
+  "sounds": [
+   {
+    "name": "holtzman:shield_hum"
+   }
+  ]
+ }
+}

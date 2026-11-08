@@ -1,0 +1,36 @@
+{
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "holtzman:item/holtzman_shield"
+ },
+ "display": {
+  "thirdperson_righthand": {
+   "scale": [
+    0.0001,
+    0.0001,
+    0.0001
+   ]
+  },
+  "thirdperson_lefthand": {
+   "scale": [
+    0.0001,
+    0.0001,
+    0.0001
+   ]
+  },
+  "firstperson_righthand": {
+   "scale": [
+    0.0001,
+    0.0001,
+    0.0001
+   ]
+  },
+  "firstperson_lefthand": {
+   "scale": [
+    0.0001,
+    0.0001,
+    0.0001
+   ]
+  }
+ }
+}
