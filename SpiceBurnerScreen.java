@@ -8,7 +8,6 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class SpiceBurnerScreen extends AbstractContainerScreen<SpiceBurnerMenu> {
     static final ResourceLocation TEX = ResourceLocation.fromNamespaceAndPath(CreateHeat.MODID, "textures/gui/spice_burner.png");
-    static final ResourceLocation LIT = ResourceLocation.withDefaultNamespace("container/furnace/lit_progress");
 
     public SpiceBurnerScreen(SpiceBurnerMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
@@ -20,11 +19,6 @@ public class SpiceBurnerScreen extends AbstractContainerScreen<SpiceBurnerMenu> 
     @Override
     protected void renderBg(GuiGraphics g, float pt, int mx, int my) {
         g.blit(TEX, leftPos, topPos, 0, 0, imageWidth, imageHeight);
-        int total = menu.total(), burn = menu.burn();
-        if (total > 0 && burn > 0) {
-            int lit = Math.max(1, Math.min(14, burn * 14 / total));
-            g.blitSprite(LIT, 14, 14, 0, 14 - lit, leftPos + 81, topPos + 42 + 14 - lit, 14, lit);
-        }
     }
 
     @Override

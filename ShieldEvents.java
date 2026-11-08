@@ -94,7 +94,7 @@ public class ShieldEvents {
             boolean on = held(p), was = p.getPersistentData().getBoolean(ON_KEY);
             if (on != was) {
                 p.getPersistentData().putBoolean(ON_KEY, on);
-                fx(p, on, Config.COLOR_GLIMMER.get());
+                fx(p, on, Config.COLOR_FIELD.get());
                 burst(l, p, Config.COLOR_GLIMMER.get());
                 sound(l, p, on ? SoundEvents.BEACON_ACTIVATE : SoundEvents.BEACON_DEACTIVATE, 1f, (on ? Config.PITCH_ON : Config.PITCH_OFF).get().floatValue());
                 if (Config.STATUS_MESSAGE.get()) p.displayClientMessage(Component.literal(on ? "Holtzman field engaged" : "Holtzman field down"), true);

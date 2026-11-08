@@ -24,19 +24,20 @@ import java.util.Map;
 /** Client side: keeps the field state of nearby players and paints a translucent coloured shell over their model. */
 @EventBusSubscriber(modid = CreateHeat.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientFx {
-    static final class State { boolean active; int fieldRgb; int flashRgb; long flashStart; int flashTicks; }
+    static final class State { int flashRgb; long flashStart; }
     static final Map<Integer, State> STATES = new HashMap<>();
-    static final float FAINT_ALPHA = 0.12f, PEAK_ALPHA = 0.55f;
-    static final ResourceLocation[] FIELD = new ResourceLocation[8];
-    static { for (int i = 0; i < 8; i++) FIELD[i] = ResourceLocation.fromNamespaceAndPath(CreateHeat.MODID, "textures/misc/field_" + i + ".png"); }
+    static final int STEPS = 10, FADE_TICKS = 26;
+    static final float MIN_ALPHA = 0.11f, PEAK_ALPHA = 0.6f;
+    static final ResourceLocation[] FIELD = new ResourceLocation[STEPS];
+    static { for (int i = 0; i < STEPS; i++) FIELD[i] = ResourceLocation.fromNamespaceAndPath(CreateHeat.MODID, "textures/misc/field_" + i + ".png"); }
 
+    /** Only flashes are drawn: blocked (blue, flickers and shakes), pierced (red), equip / unequip (blue). Idle is invisible. */
     public static void handle(FxPayload m, IPayloadContext ctx) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null) return;
-        if (!m.active() && m.flashRgb() == 0) { STATES.remove(m.entityId()); return; }
+        if (mc.level == null || m.flashRgb() == 0) return;
         State s = STATES.computeIfAbsent(m.entityId(), k -> new State());
-        s.active = m.active(); s.fieldRgb = m.fieldRgb();
-        if (m.flashRgb() != 0) { s.flashRgb = m.flashRgb(); s.flashStart = mc.level.getGameTime(); s.flashTicks = Math.max(1, m.flashTicks()); }
+        s.flashRgb = m.flashRgb();
+        s.flashStart = mc.level.getGameTime();
     }
 
     @SubscribeEvent
@@ -54,20 +55,21 @@ public class ClientFx {
         public void render(PoseStack pose, MultiBufferSource buf, int light, AbstractClientPlayer pl, float ls, float lsa, float pt, float age, float yaw, float pitch) {
             State s = STATES.get(pl.getId());
             if (s == null) return;
-            if (!pl.getOffhandItem().is(CreateHeat.SHIELD.get())) { STATES.remove(pl.getId()); return; }
             if (pl.isInvisible() || pl.isSpectator()) return;
-            float t = 1f;
-            if (s.flashRgb != 0) t = Math.min(1f, (pl.level().getGameTime() - s.flashStart + pt) / s.flashTicks);
-            if (t >= 1f) s.flashRgb = 0;
-            float base = s.active ? FAINT_ALPHA : 0f;
-            float alpha = base + (PEAK_ALPHA - base) * (1f - t) * (1f - t);
-            int rgb = s.fieldRgb;
-            if (s.flashRgb != 0) rgb = lerp(s.flashRgb, s.fieldRgb, t);
-            if (alpha <= 0.01f) { if (!s.active && s.flashRgb == 0) STATES.remove(pl.getId()); return; }
-            int argb = 0xFF000000 | (rgb & 0xFFFFFF);
-            int step = Math.max(0, Math.min(7, Math.round((alpha - 0.12f) / (PEAK_ALPHA - 0.12f) * 7f)));
+            float t = (pl.level().getGameTime() - s.flashStart + pt) / FADE_TICKS;
+            if (t >= 1f) { STATES.remove(pl.getId()); return; }
+            float k = (1f - t) * (1f - t);
+            var rnd = pl.getRandom();
+            float alpha = PEAK_ALPHA * k * (0.45f + 0.55f * rnd.nextFloat());
+            if (alpha < MIN_ALPHA) return;
+            int step = Math.max(0, Math.min(STEPS - 1, Math.round((alpha - MIN_ALPHA) / (PEAK_ALPHA - MIN_ALPHA) * (STEPS - 1))));
+            int argb = 0xFF000000 | (s.flashRgb & 0xFFFFFF);
+            pose.pushPose();
+            float j = 0.03f * k;
+            pose.translate((rnd.nextFloat() - 0.5f) * j, (rnd.nextFloat() - 0.5f) * j, (rnd.nextFloat() - 0.5f) * j);
             var vc = buf.getBuffer(RenderType.entityTranslucent(FIELD[step]));
             getParentModel().renderToBuffer(pose, vc, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, argb);
+            pose.popPose();
         }
 
         private static int lerp(int a, int b, float t) {
