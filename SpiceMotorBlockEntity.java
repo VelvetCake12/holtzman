@@ -60,15 +60,35 @@ public class SpiceMotorBlockEntity extends GeneratingKineticBlockEntity {
     public void tick() {
         super.tick();
         if (level == null || level.isClientSide || fuel <= 0) return;
-        fuel--;
+        fuel = Math.max(0, fuel - burnRate());
         if (fuel == 0) {
             updateGeneratedRotation();
             setChanged();
             sendData();
-        } else if (fuel % 10 == 0 && level instanceof ServerLevel sl) {
+        } else if (level.getGameTime() % 10 == 0 && level instanceof ServerLevel sl) {
             Direction up = Direction.UP;
             sl.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, worldPosition.getX() + 0.5, worldPosition.getY() + 1.0, worldPosition.getZ() + 0.5, 0, 0.0, 1.0, 0.0, 0.06);
         }
+    }
+
+    /** Fuel ticks burned per game tick: 1 at 16 RPM, 8 at 128 RPM. */
+    public int burnRate() {
+        if (generatedSpeed == null) return 1;
+        return Math.max(1, Math.abs(generatedSpeed.getValue()) / 16);
+    }
+
+    @Override
+    public boolean addToGoggleTooltip(List<net.minecraft.network.chat.Component> tooltip, boolean sneaking) {
+        super.addToGoggleTooltip(tooltip, sneaking);
+        int secs = fuel / burnRate() / 20;
+        tooltip.add(net.minecraft.network.chat.Component.literal("    Spice Engine").withStyle(net.minecraft.ChatFormatting.GRAY));
+        if (fuel <= 0) {
+            tooltip.add(net.minecraft.network.chat.Component.literal("    Out of fuel").withStyle(net.minecraft.ChatFormatting.RED));
+        } else {
+            String t = secs >= 60 ? (secs / 60) + "m " + (secs % 60) + "s" : secs + "s";
+            tooltip.add(net.minecraft.network.chat.Component.literal("    Fuel remaining: " + t + " at " + Math.abs(generatedSpeed.getValue()) + " RPM").withStyle(net.minecraft.ChatFormatting.GOLD));
+        }
+        return true;
     }
 
     @Override

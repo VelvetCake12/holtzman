@@ -75,6 +75,7 @@ public class CreateHeat {
     private static final MetalDef[] METALS = {
             new MetalDef("platinum", 900, 7.0f, 2.5f, 18, 24, 3, 6, 8, 3, 1.0f, 0.0f, BlockTags.INCORRECT_FOR_IRON_TOOL),
             new MetalDef("titanium", 2000, 8.0f, 3.5f, 12, 40, 3, 6, 8, 3, 3.0f, 0.05f, BlockTags.INCORRECT_FOR_DIAMOND_TOOL),
+            new MetalDef("plasteel", 3200, 9.0f, 4.5f, 16, 46, 4, 7, 9, 4, 4.0f, 0.1f, BlockTags.INCORRECT_FOR_NETHERITE_TOOL),
             new MetalDef("silver", 450, 11.0f, 1.5f, 28, 14, 2, 5, 6, 2, 0.0f, 0.0f, BlockTags.INCORRECT_FOR_IRON_TOOL),
     };
 
@@ -83,8 +84,9 @@ public class CreateHeat {
     }
 
     private static void registerMetal(MetalDef m) {
-        DeferredHolder<Item, Item> ingot = ITEMS.register(m.id() + "_ingot", () -> new Item(new Item.Properties()));
-        DeferredHolder<Item, Item> nugget = ITEMS.register(m.id() + "_nugget", () -> new Item(new Item.Properties()));
+        boolean plas = m.id().equals("plasteel");
+        DeferredHolder<Item, Item> ingot = plas ? SpiceContent.PLASTEEL_INGOT : ITEMS.register(m.id() + "_ingot", () -> new Item(new Item.Properties()));
+        DeferredHolder<Item, Item> nugget = plas ? null : ITEMS.register(m.id() + "_nugget", () -> new Item(new Item.Properties()));
         Supplier<Ingredient> repair = () -> Ingredient.of(ingot.get());
         Tier tier = new SimpleTier(m.incorrect(), m.toolUses(), m.toolSpeed(), m.toolDamage(), m.ench(), repair);
 
@@ -95,7 +97,7 @@ public class CreateHeat {
                 SoundEvents.ARMOR_EQUIP_IRON, repair, List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(MODID, m.id()))),
                 m.toughness(), m.knockback()));
 
-        METAL_ITEMS.add(ingot); METAL_ITEMS.add(nugget);
+        if (!plas) { METAL_ITEMS.add(ingot); METAL_ITEMS.add(nugget); }
         METAL_ITEMS.add(ITEMS.register(m.id() + "_sword", () -> new SwordItem(tier, new Item.Properties().attributes(SwordItem.createAttributes(tier, 3, -2.4f)))));
         METAL_ITEMS.add(ITEMS.register(m.id() + "_pickaxe", () -> new PickaxeItem(tier, new Item.Properties().attributes(PickaxeItem.createAttributes(tier, 1.0f, -2.8f)))));
         METAL_ITEMS.add(ITEMS.register(m.id() + "_axe", () -> new AxeItem(tier, new Item.Properties().attributes(AxeItem.createAttributes(tier, 6.0f, -3.1f)))));

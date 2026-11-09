@@ -90,7 +90,7 @@ public class SpiceMotorBlock extends DirectionalKineticBlock implements IBE<Spic
         be.addFuel(add);
         level.playSound(null, pos, SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, 0.9f, 0.7f);
         level.playSound(null, pos, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0f, 0.6f);
-        player.displayClientMessage(Component.literal("Spice Engine: " + be.fuel / 1200 + " min of fuel"), true);
+        player.displayClientMessage(Component.literal("Spice Engine fuelled"), true);
         return ItemInteractionResult.CONSUME;
     }
 
@@ -99,7 +99,7 @@ public class SpiceMotorBlock extends DirectionalKineticBlock implements IBE<Spic
         if (level.isClientSide) return InteractionResult.SUCCESS;
         SpiceMotorBlockEntity be = getBlockEntity(level, pos);
         if (be == null) return InteractionResult.PASS;
-        player.displayClientMessage(Component.literal(be.fuel > 0 ? "Spice Engine: " + be.fuel / 1200 + " min of fuel" : "Spice Engine: out of fuel. Feed it Melange."), true);
+        player.displayClientMessage(Component.literal(be.fuel > 0 ? "Spice Engine running. Check fuel with goggles." : "Spice Engine: out of fuel. Feed it Melange."), true);
         return InteractionResult.CONSUME;
     }
 

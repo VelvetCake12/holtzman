@@ -102,7 +102,6 @@ public class ShieldEvents {
             }
             if (!on) return;
             if (p.tickCount % 40 == 0) fx(p, true, null);
-            if (Config.HUM.get() && p.tickCount % 40 == 0) sound(l, p, SoundEvents.BEACON_AMBIENT, 0.35f, Config.PITCH_HUM.get().floatValue());
         } catch (Throwable t) {
             // ignore
         }
