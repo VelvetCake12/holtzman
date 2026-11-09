@@ -14,6 +14,8 @@ import net.minecraft.world.item.ItemStack;
 
 @EventBusSubscriber(modid = CreateHeat.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientSetup {
+    static { SpicePartials.init(); }
+
     @SubscribeEvent
     public static void renderers(EntityRenderersEvent.RegisterRenderers e) {
         e.registerBlockEntityRenderer(CreateHeat.SPICE_MOTOR_BE.get(), SpiceMotorRenderer::new);

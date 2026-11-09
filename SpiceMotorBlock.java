@@ -83,14 +83,14 @@ public class SpiceMotorBlock extends DirectionalKineticBlock implements IBE<Spic
         SpiceMotorBlockEntity be = getBlockEntity(level, pos);
         if (be == null) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         if (be.fuel + add > MAX_FUEL) {
-            player.displayClientMessage(Component.literal("The motor is full."), true);
+            player.displayClientMessage(Component.literal("The engine is full."), true);
             return ItemInteractionResult.CONSUME;
         }
         if (!player.getAbilities().instabuild) stack.shrink(1);
         be.addFuel(add);
         level.playSound(null, pos, SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, 0.9f, 0.7f);
         level.playSound(null, pos, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0f, 0.6f);
-        player.displayClientMessage(Component.literal("Spice Motor: " + be.fuel / 1200 + " min of fuel"), true);
+        player.displayClientMessage(Component.literal("Spice Engine: " + be.fuel / 1200 + " min of fuel"), true);
         return ItemInteractionResult.CONSUME;
     }
 
@@ -99,7 +99,7 @@ public class SpiceMotorBlock extends DirectionalKineticBlock implements IBE<Spic
         if (level.isClientSide) return InteractionResult.SUCCESS;
         SpiceMotorBlockEntity be = getBlockEntity(level, pos);
         if (be == null) return InteractionResult.PASS;
-        player.displayClientMessage(Component.literal(be.fuel > 0 ? "Spice Motor: " + be.fuel / 1200 + " min of fuel" : "Spice Motor: out of fuel. Feed it Melange."), true);
+        player.displayClientMessage(Component.literal(be.fuel > 0 ? "Spice Engine: " + be.fuel / 1200 + " min of fuel" : "Spice Engine: out of fuel. Feed it Melange."), true);
         return InteractionResult.CONSUME;
     }
 

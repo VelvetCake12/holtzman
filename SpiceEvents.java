@@ -18,7 +18,9 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,20 @@ public class SpiceEvents {
         try {
             if (!(e.getEntity() instanceof ServerPlayer p)) return;
             ResourceLocation id = BuiltInRegistries.ITEM.getKey(e.getItem().getItem());
+            if (id.toString().equals("minecraft:milk_bucket")) {
+                CompoundTag mpd = p.getPersistentData();
+                if (mpd.getBoolean("dune_overdose")) {
+                    clearOverdose(p);
+                    p.removeAllEffects();
+                    p.sendSystemMessage(Component.literal("The milk settles the spice in your blood.").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xE8E0C8))));
+                }
+                return;
+            }
+            if (id.toString().equals("minecraft:spice_bread")) {
+                p.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 2400, 0, false, true));
+                p.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 1200, 0, false, true));
+                return;
+            }
             if (!id.toString().equals("minecraft:processed_melange")) return;
             long now = p.level().getGameTime();
             CompoundTag pd = p.getPersistentData();
@@ -57,8 +73,8 @@ public class SpiceEvents {
             sound(p, "dune.spice_wave", 1.0f, 1.0f);
             p.serverLevel().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, 1.0f, 0.8f);
             if (times.size() >= 3) {
+                if (!pd.getBoolean("dune_overdose")) pd.putLong("dune_od_at", now);
                 pd.putBoolean("dune_overdose", true);
-                pd.putLong("dune_od_at", now);
                 title(p, "☠", "Melange poisoning. Drink milk.", 0xAA0000);
                 overdose(p);
             }
@@ -67,13 +83,50 @@ public class SpiceEvents {
         }
     }
 
+    static final int INF = MobEffectInstance.INFINITE_DURATION;
+    static final long DEATH_TICKS = 2400;   // 2 minutes after the fatal dose
+
+    static void clearOverdose(ServerPlayer p) {
+        CompoundTag pd = p.getPersistentData();
+        pd.putBoolean("dune_overdose", false);
+        pd.putString("dune_doses", "");
+        pd.putLong("dune_od_at", 0L);
+    }
+
+    /** Effects never expire on their own: only milk or death removes them. */
     static void overdose(ServerPlayer p) {
-        p.addEffect(new MobEffectInstance(MobEffects.HUNGER, 1200, 9, false, true));
-        p.addEffect(new MobEffectInstance(MobEffects.POISON, 300, 1, false, true));
-        p.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 1200, 2, false, true));
-        p.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 1200, 1, false, true));
-        p.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 200, 0, false, true));
-        p.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 400, 0, false, true));
+        p.addEffect(new MobEffectInstance(MobEffects.WITHER, INF, 0, false, true));
+        p.addEffect(new MobEffectInstance(MobEffects.HUNGER, INF, 9, false, true));
+        p.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, INF, 2, false, true));
+        p.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, INF, 1, false, true));
+        p.addEffect(new MobEffectInstance(MobEffects.CONFUSION, INF, 0, false, true));
+        p.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, INF, 0, false, true));
+        p.addEffect(new MobEffectInstance(MobEffects.POISON, INF, 1, false, true));
+    }
+
+    @SubscribeEvent
+    public static void onTick(PlayerTickEvent.Post e) {
+        try {
+            if (!(e.getEntity() instanceof ServerPlayer p) || p.tickCount % 20 != 0) return;
+            CompoundTag pd = p.getPersistentData();
+            if (!pd.getBoolean("dune_overdose") || !p.isAlive()) return;
+            long now = p.level().getGameTime();
+            long left = DEATH_TICKS - (now - pd.getLong("dune_od_at"));
+            if (left <= 0) {
+                clearOverdose(p);
+                p.hurt(p.damageSources().genericKill(), Float.MAX_VALUE);
+                return;
+            }
+            if (!p.hasEffect(MobEffects.WITHER)) overdose(p);   // re-apply if something removed them
+            p.displayClientMessage(Component.literal("Melange poisoning. Drink milk. " + (left / 20) + "s").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA0000))), true);
+        } catch (Throwable t) {
+            CreateHeat.LOGGER.error("melange tick", t);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onDeath(LivingDeathEvent e) {
+        if (e.getEntity() instanceof ServerPlayer p) clearOverdose(p);
     }
 
     static void title(ServerPlayer p, String main, String sub, int rgb) {

@@ -89,7 +89,7 @@ public class SpiceBurnerBlockEntity extends BlockEntity implements MenuProvider 
                 total = 0;
             }
         }
-        BlazeBurnerBlock.HeatLevel want = burn > 0 ? BlazeBurnerBlock.HeatLevel.KINDLED : BlazeBurnerBlock.HeatLevel.NONE;
+        BlazeBurnerBlock.HeatLevel want = burn <= 0 ? BlazeBurnerBlock.HeatLevel.NONE : (total >= COMPACTED_TICKS ? BlazeBurnerBlock.HeatLevel.SEETHING : BlazeBurnerBlock.HeatLevel.KINDLED);   // compacted melange = superheated
         BlockState st = getBlockState();
         if (st.getValue(SpiceBurnerBlock.HEAT) != want) level.setBlock(worldPosition, st.setValue(SpiceBurnerBlock.HEAT, want), 3);
         if (burn > 0 && burn % 100 == 0) level.playSound(null, worldPosition, SoundEvents.CAMPFIRE_CRACKLE, SoundSource.BLOCKS, 0.6f, 0.8f);
